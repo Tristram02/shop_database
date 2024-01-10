@@ -1,10 +1,10 @@
 const express = require('express');
 const sql = require('mysql');
 const cors = require('cors');
-const bodyParser = require('body-parser')
+const { check, validationResult } = require("express-validator");
+const { ReasonPhrases, StatusCodes } = require("http-status-code");
 
 const app = express();
-app.use(bodyParser.json());
 app.use(cors());
 
 const db = sql.createConnection({
@@ -12,20 +12,39 @@ const db = sql.createConnection({
     user: "root",
     password: '',
     database: "shop_database_aji"
-})
+});
 
-app.get('/', function (req, res) {
-    return res.json("Msg from backend");
-})
+const validateProduct = [
+    check("nazwa").notEmpty().withMessage("Nazwa produktu nie może być pusta"),
+    check("opis").notEmpty().withMessage("Opis produktu nie może być pusty"),
+    check("cena")
+      .isFloat({ min: 0 })
+      .withMessage("Cena produktu musi być liczbą większą lub równą 0"),
+    check("waga")
+      .isFloat({ min: 0 })
+      .withMessage("Waga produktu musi być liczbą większą lub równą 0"),
+];
 
 app.get('/products', (req, res) => {
     const query = "select * from produkt";
-    db.query(query, (err, data) => {
-        if (err) {
-            console.log(err);
-        }
-        return res.json(data);
-    })
+    try {
+        db.query(query, (err, data) => {
+            if (err) {
+                console.log(err);
+            }
+            return res.json(data);
+        })
+    } catch (err) {
+        console.log("Error: ", err);
+        return res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .send(ReasonPhrases.INTERNAL_SERVER_ERROR);
+    }
+})
+
+app.post('/products', async (req, res) => {
+    const newProduct = req.body;
+    console.log(newProduct);
 })
 
 
