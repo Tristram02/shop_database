@@ -24,13 +24,31 @@ function App() {
         "Waga jednostkowa": 40
     }
 
-    const newZamowienie = {
-        "Data zatwierdzenia": "2021-05-05",
-        "Stan zamowienia": "ZATWIERDZONE",
-        "Nazwa uzytkownika": "janKowalski",
-        "Email":   "jankowalski@poczta.com",
-        "Numer telefonu": "123456789"
+    const newZamowienie =
+        {"orderData": {
+            "Data zatwierdzenia": "2021-05-05",
+            "Stan zamowienia": "NIEZATWIERDZONE",
+            "Nazwa uzytkownika": "janKowalski",
+            "Email": "jankowalski@poczta.com",
+            "Numer telefonu": "123456789"
+        },
+        "products": [
+            {
+                "ID_produktu": 1,
+                "liczba_sztuk": 5
+            },
+            {
+                "ID_produktu": 2,
+                "liczba_sztuk": 3
+            }
+        ]
     }
+
+    const updatedZamownienie =   [{
+        "op": "replace",
+        "path": "/Stan zamowienia",
+        "value": "ANULOWANE"
+    }]
 
     useEffect(() => {
         fetch('http://localhost:5000/products')
@@ -90,6 +108,16 @@ function App() {
         })
     }
 
+    async function handleUpdateZamowienie() {
+        await fetch('http://localhost:5000/orders/5', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedZamownienie)
+        })
+    }
+
 
     return (
         <div className="App">
@@ -137,28 +165,41 @@ function App() {
             <h2>Zamówienia</h2>
             <table>
                 <thead>
-                    <th>ID zamówienia</th>
-                    <th>Data zatwierdzenia</th>
-                    <th>Stan zamówienia</th>
-                    <th>Nazwa użytkownika</th>
-                    <th>Email</th>
-                    <th>Numer telefonu</th>
+                <th>ID</th>
+                <th>Data zatwierdzenia</th>
+                <th>Stan zamówienia</th>
+                <th>Nazwa użytkownika</th>
+                <th>Email</th>
+                <th>Numer telefonu</th>
+                <th>Id</th>
+                <th>Sztuki</th>
                 </thead>
                 <tbody>
-                {zamowienia.map((item, index) => (
+                {Array.isArray(zamowienia) && zamowienia.length > 0 ? (
+                zamowienia.map((item, index) => (
                     <tr key={index}>
                         <td>{item["ID_zamowienia"]}</td>
-                        <td>{item["Data zatwierdzenia"]}</td>
-                        <td>{item["Stan zamowienia"]}</td>
-                        <td>{item["Nazwa uzytkownika"]}</td>
-                        <td>{item["Email"]}</td>
-                        <td>{item["Numer telefonu"]}</td>
+                        <td>{item.orderData["Data zatwierdzenia"]}</td>
+                        <td>{item.orderData["Stan zamowienia"]}</td>
+                        <td>{item.orderData["Nazwa uzytkownika"]}</td>
+                        <td>{item.orderData["Email"]}</td>
+                        <td>{item.orderData["Numer telefonu"]}</td>
+                        {item.products.map((product, index) => (
+                            <tr key={index}>
+                                <td>{product["ID_produktu"]}</td>
+                                <td>{product["liczba_sztuk"]}</td>
+                            </tr>
+                        ))}
                     </tr>
-                ))}
+                ))) : (
+                    <tr>
+                        <td colSpan={3}>No orders</td>
+                    </tr>
+                )}
                 </tbody>
             </table>
             <button onClick={handleAddZamowienie}>Add zamowienie</button>
-            {/*<button onClick={handleUpdateZamowienie}>Update zamowienie</button>*/}
+            <button onClick={handleUpdateZamowienie}>Update zamowienie</button>
             <h2>Stany zamówień</h2>
             <table>
                 <thead>
